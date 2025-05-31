@@ -14,48 +14,56 @@ The pipeline begins with **data preprocessing**, where all images are resized to
 
 ## Setup Instructions
 
-To run this project locally, first clone the repository:
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/Paulangwiedergoerner/car_classification_type.git
 cd car_classification_type
 ```
 
-Then, create and activate a Python virtual environment. On Windows:
+### 2. Create and activate the virtual environment
 
-```bash
-python -m venv venv
-venv\Scripts\activate
-```
+- **Windows:**
+  ```bash
+  python -m venv venv
+  venv\Scripts\activate
+  ```
 
-Or on macOS/Linux:
+- **macOS/Linux:**
+  ```bash
+  python3 -m venv venv
+  source venv/bin/activate
+  ```
 
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
-Next, install all required packages using pip:
+### 3. Install all required packages
 
 ```bash
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-To start the application, run:
+> 💡 This will recreate the virtual environment (`venv/`) with all required packages.
+
+### 4. Run the application
 
 ```bash
 python app.py
 ```
 
-The server will run locally at `http://127.0.0.1:5000`.
+Open your browser and go to: [http://127.0.0.1:5000](http://127.0.0.1:5000)
 
 ## Usage
 
-> 🔐 **Note**: The dashboard at `/manager` is protected. Users must sign up or log in through the admin form to gain access.
-> Unauthorized users cannot view analytics or prediction history without authentication.
+🔐 **Note**: The dashboard at `/manager` is protected. Users must sign up or log in through the admin form to gain access. Unauthorized users cannot view analytics or prediction history without authentication.
 
+After starting the app, navigate to [http://127.0.0.1:5000](http://127.0.0.1:5000) to upload a car image and receive a prediction. Admins can access [http://127.0.0.1:5000/manager](http://127.0.0.1:5000/manager) to log in, review predictions, view charts, and system usage metrics. Admin credentials are stored securely in `admin.db` (SQLite), and predictions are logged with timestamps in the dashboard table.
 
-After starting the app, open your browser and navigate to `http://127.0.0.1:5000`. Use the upload page to select and submit a car image. The app will return the predicted car type based on the trained model. If you are an admin, visit `http://127.0.0.1:5000/manager` to log in and access the dashboard. There, you can view predictions, system usage, charts, and model response times. The admin system includes secure login with password validation, and credentials are stored in a local SQLite database (`admin.db`). All predictions are logged with timestamps and can be reviewed in the dashboard table.
+## Notes
 
----
+- ✅ The trained model file (`resnet50_car_body_type_model.h5`) is already included under `model/` — no need to download it separately.
+- ✅ Background images are available under `static/` and `static/uploads/`.
+- 🧹 You can reset admin or prediction data using:
+
+```bash
+python reset_db.py
+```
