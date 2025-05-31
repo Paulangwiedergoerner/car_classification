@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% block title %}Manager Dashboard{% endblock %}
+
+{% block content %}
+<section class="container-fluid text-white">
+
+  <!-- Header -->
+  <div class="mb-4 text-center">
+    <h2 class="text-gold fw-bold mb-0">
+      <i class="fa-solid fa-gauge me-2"></i> Manager Dashboard
+    </h2>
+    <p class="text-muted-light">Monitor AI predictions in real-time and analyze performance.</p>
+  </div>
+
+  <!-- Filter Form -->
+  <form method="get" class="row g-3 align-items-end mb-4">
+    <div class="col-md-4">
+      <label for="carTypeSelect" class="form-label">Filter by Car Type</label>
+      <select id="carTypeSelect" name="class" class="form-select" title="Car type selection">
+        <option value="All">All Types</option>
+        {% for cls in all_classes %}
+          <option value="{{ cls }}" {% if cls == current_class %}selected{% endif %}>{{ cls }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label for="startDate" class="form-label">Start Date</label>
+      <input type="date" id="startDate" name="start" class="form-control" placeholder="Start Date" title="Start date filter" value="{{ current_start }}">
+    </div>
+    <div class="col-md-3">
+      <label for="endDate" class="form-label">End Date</label>
+      <input type="date" id="endDate" name="end" class="form-control" placeholder="End Date" title="End date filter" value="{{ current_end }}">
+    </div>
+    <div class="col-md-2 d-grid gap-2">
+      <button class="btn btn-primary" type="submit">
+        <i class="fa-solid fa-filter me-1"></i> Apply
+      </button>
+      <a href="/manager" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-eraser me-1"></i> Clear
+      </a>
+    </div>
+  </form>
+
+  <!-- KPI Panels -->
+  <div class="row text-center text-white mb-4">
+    <div class="col-md-3">
+      <div class="dashboard-panel d-flex flex-column justify-content-center align-items-center h-100">
+        <h6>Total Predictions</h6>
+        <h3 class="fw-bold">{{ predictions|length }}</h3>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="dashboard-panel d-flex flex-column justify-content-center align-items-center h-100">
+        <h6>Unique Car Types</h6>
+        <h3 class="fw-bold">{{ all_classes|length }}</h3>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="dashboard-panel d-flex flex-column justify-content-center align-items-center h-100">
+        <h6>Top Type</h6>
+        <h3 class="fw-bold">{{ top_classes[0][0] if top_classes else 'N/A' }}</h3>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="dashboard-panel d-flex flex-column justify-content-center align-items-center h-100">
+        <h6>Latest Prediction</h6>
+        <h3 class="fw-bold">
+          {% if predictions %}
+            {{ predictions[0][2].split(' ')[1].split('.')[0] }}
+          {% else %}
+            N/A
+          {% endif %}
+        </h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Grid -->
+  <div class="row g-4 mb-5">
+    <div class="col-md-6">
+      <div class="dashboard-panel chart-card h-100">
+        <h5><i class="fa-solid fa-chart-pie me-2"></i> Car Type Distribution</h5>
+        <canvas id="pieChart"></canvas>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="dashboard-panel chart-card h-100">
+        <h5><i class="fa-solid fa-chart-line me-2"></i> Predictions Over Time</h5>
+        <canvas id="lineChart"></canvas>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="dashboard-panel chart-card h-100">
+        <h5><i class="fa-solid fa-bars-progress me-2"></i> Top 5 Car Types</h5>
+        <canvas id="topChart"></canvas>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="dashboard-panel chart-card h-100">
+        <h5><i class="fa-solid fa-clock me-2"></i> Prediction Time Distribution</h5>
+        <canvas id="durationChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prediction Table -->
+  <div class="bg-dark rounded-4 p-4 shadow-sm mb-4">
+    <h4 class="text-white mb-3"><i class="fa-solid fa-list me-2"></i> All Predictions</h4>
+    <div class="table-responsive">
+      <table class="table table-striped table-dark align-middle text-white">
+        <thead class="text-warning">
+          <tr>
+            <th>Image</th>
+            <th>Car Type</th>
+            <th>Time</th>
+            <th>Prediction Time (s)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for filename, result, timestamp, duration in predictions %}
+          <tr>
+            <td><img src="{{ url_for('static', filename='uploads/' + filename) }}" class="table-image" alt="Car Image"></td>
+            <td>{{ result }}</td>
+            <td>{{ timestamp.split(' ')[1].split('.')[0] }}</td>
+            <td>{{ '%.2f' | format(duration) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</section>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script>
+  Chart.defaults.color = '#eaeaea';  // unify text color across all charts
+  const palette = ['#ffc107', '#17a2b8', '#28a745', '#dc3545', '#6f42c1'];
+
+  new Chart(document.getElementById('pieChart'), {
+    type: 'pie',
+    data: {
+      labels: {{ class_distribution | map(attribute=0) | list | safe }},
+      datasets: [{
+        data: {{ class_distribution | map(attribute=1) | list | safe }},
+        backgroundColor: palette
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { position: 'top', labels: { color: '#fff' } },
+        datalabels: {
+          formatter: (value, ctx) => {
+            const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+            return Math.round((value / total) * 100) + '%';
+          },
+          color: '#fff',
+          font: { weight: 'bold' }
+        }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+
+  new Chart(document.getElementById('lineChart'), {
+    type: 'bar',  // ← changed from 'line'
+    data: {
+      labels: {{ date_counts | map(attribute=0) | list | safe }},
+      datasets: [{
+        label: 'Predictions',
+        data: {{ date_counts | map(attribute=1) | list | safe }},
+        backgroundColor: '#17a2b8'
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1
+          }
+        }
+      }
+    }
+  });
+
+
+  new Chart(document.getElementById('topChart'), {
+    type: 'bar',
+    data: {
+      labels: {{ top_classes | map(attribute=0) | list | safe }},
+      datasets: [{
+        label: 'Top Types',
+        data: {{ top_classes | map(attribute=1) | list | safe }},
+        backgroundColor: '#ffc107',
+        borderRadius: 6
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      scales: {
+        x: { beginAtZero: true, ticks: { color: '#ccc' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        y: { ticks: { color: '#ccc' } }
+      },
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('durationChart'), {
+    type: 'bar',
+    data: {
+      labels: [
+        {% for _, _, timestamp, _ in predictions %}
+          "{{ timestamp.split(' ')[1].split('.')[0] }}",
+        {% endfor %}
+      ],
+      datasets: [{
+        label: 'Prediction Time (s)',
+        data: [
+          {% for _, _, _, duration in predictions %}
+            {{ '%.2f' | format(duration) }},
+          {% endfor %}
+        ],
+        backgroundColor: '#28a745'
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true }
+      },
+      responsive: true
+    }
+  });
+</script>
+{% endblock %}

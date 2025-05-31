@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <div class="hero-overlay"></div>
+  <div class="hero-content fade-in">
+    <h1 class="hero-title">
+      <span class="text-accent">AI</span> CAR TYPE <span class="text-accent">CLASSIFIER</span>
+    </h1>
+    <p class="lead mt-3 text-light">Upload a car image and let our model classify it instantly.</p>
+    <a href="/predict" class="btn btn-yellow btn-lg mt-4">
+      <i class="fa-solid fa-camera me-2"></i> Start Classifying
+    </a>
+  </div>
+</div>
+{% endblock %}

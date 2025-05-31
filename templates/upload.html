@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Upload Car Image{% endblock %}
+
+{% block content %}
+<section class="upload-section">
+  <div class="upload-card shadow-lg text-center text-white bg-dark border-0 rounded-4 p-5 animate__animated animate__fadeInUp">
+
+    <div class="mb-4">
+      <i class="fa-solid fa-cloud-arrow-up fa-3x text-warning"></i>
+    </div>
+
+    <h2 class="fw-bold mb-2 text-gold">Upload a Car Image</h2>
+    <p class="text-light mb-4">Choose an image of a car, and let our AI classify it by type using advanced vision models.</p>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, msg in messages %}
+          <div class="alert alert-{{ category }} w-100">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" enctype="multipart/form-data" onsubmit="return validateFile()" class="d-flex flex-column align-items-center">
+      <div class="mb-3 w-100">
+        <input type="file" name="image" id="imageInput"
+               class="form-control form-control-lg border-0 shadow-sm file-input"
+               required 
+               onchange="previewImage(event)">
+      </div>
+
+      <div id="preview-container" class="mb-4" style="display: none;">
+        <img id="preview" src="#"
+             alt="Image Preview"
+             class="img-fluid rounded shadow-sm"
+             style="max-height: 220px;">
+      </div>
+
+      <button type="submit" class="btn btn-warning btn-lg px-5 mt-2 shadow-sm hover-glow">
+        <i class="fa-solid fa-car-side me-2"></i> Classify Car Type
+      </button>
+    </form>
+
+  </div>
+</section>
+
+<script>
+function previewImage(event) {
+  const input = event.target;
+  const preview = document.getElementById('preview');
+  const container = document.getElementById('preview-container');
+
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      preview.src = e.target.result;
+      container.style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function validateFile() {
+  const input = document.getElementById('imageInput');
+  const file = input.files[0];
+  const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+
+  if (!file) {
+    alert("Please select a file.");
+    return false;
+  }
+
+  const extension = file.name.split('.').pop().toLowerCase();
+
+  if (!allowedExtensions.includes(extension)) {
+    alert("Unsupported file type. Please upload an image (jpg, jpeg, png, gif).");
+    return false;
+  }
+
+  return true;
+}
+</script>
+{% endblock %}

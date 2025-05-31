@@ -1,0 +1,107 @@
+{% extends "base.html" %} 
+{% block title %}Admin Sign Up{% endblock %}
+
+{% block content %}
+<section class="upload-section">
+  <div class="upload-card text-white text-center animate__animated animate__fadeIn">
+    <h2 class="fw-bold mb-4 text-warning">
+      <i class="fa-solid fa-user-plus me-2"></i> Create Admin Account
+    </h2>
+
+    <form method="POST" onsubmit="return validateForm()" class="text-start">
+      <div class="mb-3">
+        <label for="username" class="form-label text-light">Username</label>
+        <input type="text" name="username" id="username" class="form-control file-input" required minlength="5">
+      </div>
+
+      <div class="mb-3">
+        <label for="password" class="form-label text-light">Password</label>
+        <input type="password" name="password" id="password" class="form-control file-input" required oninput="checkPasswordStrength()">
+        <ul class="password-rules mt-2 ps-3 small">
+          <li id="length" class="invalid"><i class="fa-solid fa-xmark me-1"></i>Min 8 characters</li>
+          <li id="number" class="invalid"><i class="fa-solid fa-xmark me-1"></i>One number</li>
+          <li id="uppercase" class="invalid"><i class="fa-solid fa-xmark me-1"></i>One uppercase letter</li>
+          <li id="lowercase" class="invalid"><i class="fa-solid fa-xmark me-1"></i>One lowercase letter</li>
+          <li id="special" class="invalid"><i class="fa-solid fa-xmark me-1"></i>One symbol</li>
+        </ul>
+      </div>
+
+      <div class="d-grid mt-4">
+        <button type="submit" class="btn btn-yellow btn-lg">
+          <i class="fa-solid fa-user-plus me-2"></i> Sign Up
+        </button>
+      </div>
+    </form>
+
+    <!-- Bottom Sign In Prompt -->
+    <div class="mt-4 text-center">
+      <p class="small" style="color: #ccc;">
+        Already have an account?
+        <a href="{{ url_for('login') }}" class="text-warning fw-semibold">Login</a>
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<script>
+function validateForm() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+
+  const regex = {
+    length: /.{8,}/,
+    number: /\d/,
+    uppercase: /[A-Z]/,
+    lowercase: /[a-z]/,
+    special: /[\W_]/
+  };
+
+  if (username.length < 5) {
+    alert("Username must be at least 5 characters.");
+    return false;
+  }
+
+  for (const [key, rule] of Object.entries(regex)) {
+    if (!rule.test(password)) {
+      alert("Password does not meet all requirements.");
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function checkPasswordStrength() {
+  const pwd = document.getElementById('password').value;
+  const rules = {
+    length: pwd.length >= 8,
+    number: /\d/.test(pwd),
+    uppercase: /[A-Z]/.test(pwd),
+    lowercase: /[a-z]/.test(pwd),
+    special: /[\W_]/.test(pwd)
+  };
+
+  for (const [id, valid] of Object.entries(rules)) {
+    const el = document.getElementById(id);
+    el.classList.toggle('valid', valid);
+    el.classList.toggle('invalid', !valid);
+    el.querySelector('i').className = valid ? 'fa-solid fa-check text-success me-1' : 'fa-solid fa-xmark text-danger me-1';
+  }
+}
+</script>
+
+<style>
+.password-rules li {
+  list-style: none;
+  padding-left: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+.valid {
+  color: #28a745;
+}
+.invalid {
+  color: #dc3545;
+}
+</style>
+{% endblock %}
